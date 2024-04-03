@@ -1,9 +1,21 @@
 import fastify from "fastify";
-import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import {
+  serializerCompiler,
+  validatorCompiler,
+} from "fastify-type-provider-zod";
+import { createEvent } from "./routes/create-event";
+import { registerForEvent } from "./routes/register-for-event";
 
-const prisma = new PrismaClient({
-  log: ["query"],
+const app = fastify();
+
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+
+app.register(createEvent);
+app.register(registerForEvent);
+
+app.listen({ port: 3333 }).then(() => {
+  console.log("http server running!");
 });
 
 // Métodos HTTP: GET, POST, PUT, DELETE, PATCH, HEAD, OPTION...
@@ -17,28 +29,7 @@ const prisma = new PrismaClient({
 
 //Driver nativo / Query Builders / ORMs
 
-const app = fastify();
-
-app.post("/events", async (request, reply) => {
-  const createEventSchema = z.object({
-    title: z.string().min(4),
-    details: z.string().nullable(),
-    maximumAttendees: z.number().int().positive().nullable(),
-  });
-  const data = createEventSchema.parse(request.body);
-
-  const event = await prisma.event.create({
-    data: {
-      title: data.title,
-      details: data.details,
-      maximumAttendees: data.maximumAttendees,
-      slug: new Date().toISOString(),
-    },
-  });
-
-  return reply.status(2001).send({ eventId: event.id });
-});
-
-app.listen({ port: 3333 }).then(() => {
-  console.log("http server running!");
-});
+// 200 => Sucesso
+// 300 => redirecionamento
+// 400 => erro do cliente (Erro em alguma informação enviada por quem está fazendo a chama p/ API)
+// 500 => Erro do servidor (Um erro que está acontecendo INDEPENDENTE do que está sendo eviado p/ o servidor)
