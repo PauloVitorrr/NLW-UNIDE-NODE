@@ -45,7 +45,7 @@ export async function createEvent(app: FastifyInstance) {
         },
       });
 
-      return reply.status(2001).send({ eventId: event.id });
+      return reply.status(201).send({ eventId: event.id });
     }
   );
 }
