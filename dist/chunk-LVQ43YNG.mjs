@@ -1,18 +1,21 @@
-import { FastifyInstance } from "fastify";
-import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { prisma } from "../lib/prisma";
-import { BadResquest } from "./_errors/bad-request";
+import {
+  BadResquest
+} from "./chunk-3N6WEW4Y.mjs";
+import {
+  prisma
+} from "./chunk-JV6GRE7Y.mjs";
 
-export async function getEvent(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().get(
+// src/routes/get-event.ts
+import { z } from "zod";
+async function getEvent(app) {
+  app.withTypeProvider().get(
     "/events/:eventId",
     {
       schema: {
         summary: "Get an event",
         tags: ["events"],
         params: z.object({
-          eventId: z.string().uuid(),
+          eventId: z.string().uuid()
         }),
         response: {
           200: z.object({
@@ -22,15 +25,14 @@ export async function getEvent(app: FastifyInstance) {
               slug: z.string(),
               details: z.string().nullable(),
               maximumAttendees: z.number().int().nullable(),
-              attendeesAmount: z.number().int(),
-            }),
-          }),
-        },
-      },
+              attendeesAmount: z.number().int()
+            })
+          })
+        }
+      }
     },
     async (request, reply) => {
       const { eventId } = request.params;
-
       const event = await prisma.event.findUnique({
         select: {
           id: true,
@@ -40,19 +42,17 @@ export async function getEvent(app: FastifyInstance) {
           maximumAttendees: true,
           _count: {
             select: {
-              attendees: true,
-            },
-          },
+              attendees: true
+            }
+          }
         },
         where: {
-          id: eventId,
-        },
+          id: eventId
+        }
       });
-
       if (event === null) {
         throw new BadResquest("Event not found.");
       }
-
       return reply.send({
         event: {
           id: event.id,
@@ -60,9 +60,13 @@ export async function getEvent(app: FastifyInstance) {
           slug: event.slug,
           details: event.details,
           maximumAttendees: event.maximumAttendees,
-          attendeesAmount: event._count.attendees,
-        },
+          attendeesAmount: event._count.attendees
+        }
       });
     }
   );
 }
+
+export {
+  getEvent
+};
